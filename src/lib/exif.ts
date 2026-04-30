@@ -28,11 +28,7 @@ export interface ExifTags {
   'exif:offsettimeoriginal'?: string;
 }
 
-declare module 'c2pa' {
-  interface ExtendedAssertions {
-    'stds.exif': ExifTags;
-  }
-}
+
 
 function findExifValue(exif: ExifTags, locations: string[]) {
   return (
@@ -203,7 +199,16 @@ export function parseDateTime(exif: ExifTags): Date | null {
 }
 
 export function selectExif(manifest: Manifest): ExifSummary | null {
-  const assertion = manifest.assertions?.['stds.exif'];
+  let assertion;
+  const assertions = manifest.assertions as any;
+  if (assertions instanceof Map) {
+    assertion = assertions.get('stds.exif')?.[0] || assertions.get('stds.exif');
+  } else if (Array.isArray(assertions)) {
+    assertion = assertions.find((a: any) => a.label === 'stds.exif');
+  } else {
+    assertion = assertions?.['stds.exif'];
+  }
+
   const exif: ExifTags = (Array.isArray(assertion) ? assertion : [assertion]).reduce(
     (acc, exif) => {
       const caseInsensitiveData = mapKeys(exif?.data, (_, key) => {

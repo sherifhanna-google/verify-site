@@ -20,7 +20,16 @@ declare module '@contentauth/c2pa-web' {
 type CryptoAddressAssertion = { data?: Record<string, string[]> };
 
 export function selectWeb3(manifest: Manifest): [string, string[]][] {
-  const cryptoEntries = (manifest.assertions?.['adobe.crypto.addresses'] as CryptoAddressAssertion)?.data ?? {};
+  const assertions = manifest.assertions as any;
+  let cryptoAssertion;
+  if (assertions instanceof Map) {
+    cryptoAssertion = assertions.get('adobe.crypto.addresses')?.[0] || assertions.get('adobe.crypto.addresses');
+  } else if (Array.isArray(assertions)) {
+    cryptoAssertion = assertions.find((a: any) => a.label === 'adobe.crypto.addresses');
+  } else {
+    cryptoAssertion = assertions?.['adobe.crypto.addresses'];
+  }
+  const cryptoEntries = (cryptoAssertion as CryptoAddressAssertion)?.data ?? {};
 
   return (Object.entries(cryptoEntries) as [string, string[]][]).filter(
     ([type, [address]]) => address && ['solana', 'ethereum'].includes(type),

@@ -3,8 +3,17 @@
 import type { Manifest } from '@contentauth/c2pa-web';
 
 export function selectDoNotTrain(manifest: Manifest): boolean {
+  const assertions = manifest.assertions as any;
+
   // Check for the explicit do not train/mine assertion
-  const trainingAssertions = manifest.assertions?.['c2pa.training-mining'];
+  let trainingAssertions;
+  if (assertions instanceof Map) {
+    trainingAssertions = assertions.get('c2pa.training-mining')?.[0] || assertions.get('c2pa.training-mining');
+  } else if (Array.isArray(assertions)) {
+    trainingAssertions = assertions.find((a: any) => a.label === 'c2pa.training-mining');
+  } else {
+    trainingAssertions = assertions?.['c2pa.training-mining'];
+  }
 
   if (trainingAssertions) {
     type TrainingEntry = { use: string; c2pa_manifest: boolean | string };
@@ -18,8 +27,16 @@ export function selectDoNotTrain(manifest: Manifest): boolean {
 
   // Fallback: Check c2pa.actions for specific 'not_trained' markers
   type ActionsAssertion = { data?: { actions?: Array<{ action: string }> } };
-  const actionsAssertion = manifest.assertions?.['c2pa.actions'] as ActionsAssertion | undefined;
-  const actions = actionsAssertion?.data?.actions ?? [];
+  let actionsAssertion;
+  if (assertions instanceof Map) {
+    actionsAssertion = assertions.get('c2pa.actions')?.[0] || assertions.get('c2pa.actions');
+  } else if (Array.isArray(assertions)) {
+    actionsAssertion = assertions.find((a: any) => a.label === 'c2pa.actions');
+  } else {
+    actionsAssertion = assertions?.['c2pa.actions'];
+  }
+
+  const actions = (actionsAssertion as ActionsAssertion)?.data?.actions ?? [];
 
   return actions.some((a) => a.action === 'c2pa.not_trained');
 }

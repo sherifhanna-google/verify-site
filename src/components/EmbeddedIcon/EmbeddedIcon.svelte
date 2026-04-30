@@ -14,7 +14,7 @@
   let iconUrl: string | undefined;
 
   onMount(() => {
-    let dispose: DisposableBlobUrl['dispose'];
+    let dispose: any = undefined;
 
     if (generator.icon) {
       // The new SDK requires the active reader instance to fetch embedded resources.

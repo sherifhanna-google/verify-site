@@ -146,7 +146,7 @@ export async function resultToAssetMap({
   dbg('Runtime validation statuses by manifest label', runtimeValidationStatuses);
 
   const activeManifestValidationResults =
-    manifestStore?.validation_results?.activeManifest;
+    manifestStore?.validation_results?.activeManifest ?? undefined;
 
   const rootValidationStatuses =
     runtimeValidationStatuses[activeManifestLabel] ?? [];
@@ -260,7 +260,7 @@ export async function resultToAssetMap({
       manifestData: await getManifestData(manifest, rootValidationResult),
       dataType: null,
       validationResult: rootValidationResult,
-      trustSource: (manifest as Manifest & { trust_source?: string }).trust_source || 'none',
+      trustSource: ((manifest as Manifest & { trust_source?: 'legacy' | 'none' | 'official' }).trust_source || 'none') as 'legacy' | 'none' | 'official',
     };
 
     if (thumbnail?.dispose) {
@@ -288,7 +288,7 @@ export async function resultToAssetMap({
     );
 
     const activeManifestValidationResults =
-      ingredient.validation_results?.activeManifest;
+      ingredient.validation_results?.activeManifest ?? undefined;
 
     let validationResult = selectValidationResult(
       ingredient.validation_status || [],
@@ -318,7 +318,7 @@ export async function resultToAssetMap({
       manifestData: await getManifestData(ingredientManifest, validationResult),
       dataType: getIngredientDataType(ingredient),
       validationResult,
-      trustSource: (ingredient as Ingredient & { trust_source?: string })?.trust_source || 'none',
+      trustSource: ((ingredient as Ingredient & { trust_source?: 'legacy' | 'none' | 'official' })?.trust_source || 'none') as 'legacy' | 'none' | 'official',
     };
 
     if (thumbnail?.dispose) {
@@ -338,9 +338,7 @@ export async function resultToAssetMap({
       return null;
     }
 
-    type ClaimGeneratorEntry = { name?: string; version?: string | null; icon?: Thumbnail | null };
-
-    function formattedGeneratorInfo(claim_generator: ClaimGeneratorEntry): ClaimGeneratorEntry {
+    function formattedGeneratorInfo(claim_generator: any): any {
       const version = claim_generator?.version;
       claim_generator.version = version?.replace(/\([^()]*\)/g, '');
 
@@ -384,7 +382,15 @@ export async function resultToAssetMap({
         );
 
         if (editsAndActivity) {
-          const actionsAssertion = manifest.assertions?.['c2pa.actions'] as { data?: { metadata?: Record<string, unknown> } } | undefined;
+          const assertions = manifest.assertions as any;
+          let actionsAssertion;
+          if (assertions instanceof Map) {
+            actionsAssertion = assertions.get('c2pa.actions')?.[0] || assertions.get('c2pa.actions');
+          } else if (Array.isArray(assertions)) {
+            actionsAssertion = assertions.find((a: any) => a.label === 'c2pa.actions');
+          } else {
+            actionsAssertion = assertions?.['c2pa.actions'];
+          }
           const hasInference =
             !!actionsAssertion?.data?.metadata?.['com.adobe.inference'];
 

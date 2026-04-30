@@ -14,8 +14,18 @@ export function selectReviewRatings(manifest: Manifest) {
     [],
   );
   type ActionsReviewAssertion = { data?: { metadata?: { reviewRatings?: ReviewRating[] } } };
+  let actionsAssertion;
+  const assertions = manifest.assertions as any;
+  if (assertions instanceof Map) {
+    actionsAssertion = assertions.get('c2pa.actions')?.[0] || assertions.get('c2pa.actions');
+  } else if (Array.isArray(assertions)) {
+    actionsAssertion = assertions.find((a: any) => a.label === 'c2pa.actions');
+  } else {
+    actionsAssertion = assertions?.['c2pa.actions'];
+  }
+
   const actionRatings =
-    (manifest.assertions?.['c2pa.actions'] as ActionsReviewAssertion)?.data?.metadata?.reviewRatings ?? [];
+    (actionsAssertion as ActionsReviewAssertion)?.data?.metadata?.reviewRatings ?? [];
   const reviewRatings = [...ingredientRatings, ...actionRatings];
 
   return {

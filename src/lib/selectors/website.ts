@@ -21,9 +21,28 @@ type AssetRefAssertion = { data?: { references?: Array<{ reference?: { uri?: str
 type CreativeWorkAssertion = { data?: { url?: string } };
 
 export function selectWebsite(manifest: Manifest): string | null {
+  const assertions = manifest.assertions as any;
+  let assetRefAssertion;
+  if (assertions instanceof Map) {
+    assetRefAssertion = assertions.get('c2pa.asset-ref')?.[0] || assertions.get('c2pa.asset-ref');
+  } else if (Array.isArray(assertions)) {
+    assetRefAssertion = assertions.find((a: any) => a.label === 'c2pa.asset-ref');
+  } else {
+    assetRefAssertion = assertions?.['c2pa.asset-ref'];
+  }
+
+  let creativeWorkAssertion;
+  if (assertions instanceof Map) {
+    creativeWorkAssertion = assertions.get('stds.schema-org.CreativeWork')?.[0] || assertions.get('stds.schema-org.CreativeWork');
+  } else if (Array.isArray(assertions)) {
+    creativeWorkAssertion = assertions.find((a: any) => a.label === 'stds.schema-org.CreativeWork');
+  } else {
+    creativeWorkAssertion = assertions?.['stds.schema-org.CreativeWork'];
+  }
+
   const site =
-    (manifest.assertions?.['c2pa.asset-ref'] as AssetRefAssertion)?.data?.references?.[0]?.reference?.uri ??
-    (manifest.assertions?.['stds.schema-org.CreativeWork'] as CreativeWorkAssertion)?.data?.url;
+    (assetRefAssertion as AssetRefAssertion)?.data?.references?.[0]?.reference?.uri ??
+    (creativeWorkAssertion as CreativeWorkAssertion)?.data?.url;
 
   return site && isSecureUrl(site) ? site : null;
 }

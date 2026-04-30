@@ -14,25 +14,33 @@ export interface AutoDubInfo {
 }
 
 export function selectAutoDubInfo(manifest: Manifest): AutoDubInfo | null {
-  const actionAssertion = manifest.assertions?.['c2pa.actions.v2'];
+  let actionAssertion;
+  const assertions = manifest.assertions as any;
+  if (assertions instanceof Map) {
+    actionAssertion = assertions.get('c2pa.actions.v2')?.[0] || assertions.get('c2pa.actions.v2');
+  } else if (Array.isArray(assertions)) {
+    actionAssertion = assertions.find((a: any) => a.label === 'c2pa.actions.v2');
+  } else {
+    actionAssertion = assertions?.['c2pa.actions.v2'];
+  }
 
   if (!actionAssertion) {
     return null;
   }
 
-  const dubbedAction = actionAssertion.data.actions.find(
-    ({ action }) => action === 'c2pa.dubbed',
+  const dubbedAction = (actionAssertion as any).data?.actions?.find(
+    ({ action }: any) => action === 'c2pa.dubbed',
   );
-  const translatedAction = actionAssertion.data.actions.find(
-    ({ action }) => action === 'c2pa.translated',
+  const translatedAction = (actionAssertion as any).data?.actions?.find(
+    ({ action }: any) => action === 'c2pa.translated',
   );
-  const editedAction = actionAssertion.data.actions.find(
-    ({ action }) => action === 'c2pa.edited',
+  const editedAction = (actionAssertion as any).data?.actions?.find(
+    ({ action }: any) => action === 'c2pa.edited',
   );
 
   if (dubbedAction) {
     const dubbedRegionOfInterest = dubbedAction.changes?.find(
-      (change) => !!change?.region,
+      (change: any) => !!change?.region,
     )?.region;
     const dubbedIdentified = dubbedRegionOfInterest?.find(
       (region: Record<string, unknown>) => region.type === 'identified',
@@ -40,7 +48,7 @@ export function selectAutoDubInfo(manifest: Manifest): AutoDubInfo | null {
     const hasLipsRoi = dubbedIdentified === 'lips';
 
     const editedRegionOfInterest = editedAction?.changes?.find(
-      (change) => !!change?.region,
+      (change: any) => !!change?.region,
     )?.region;
     const editedIdentified = editedRegionOfInterest?.find(
       (region: Record<string, unknown>) => region.type === 'identified',

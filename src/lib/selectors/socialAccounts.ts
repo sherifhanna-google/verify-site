@@ -36,16 +36,12 @@ export function selectSocialAccounts(manifest: Manifest): SocialAccount[] {
     }
   }
 
-  interface CreativeWorkShape {
-    data?: {
-      author?: {
-        sameAs?: string | string[];
-      };
-    };
-  }
+
   
-  const creativeWorkAssertion = (manifest.assertions as unknown as Record<string, unknown>)?.[ 'stds.schema-org.CreativeWork' ] as CreativeWorkShape | undefined;
-  const authorData = creativeWorkAssertion?.data?.author;
+  const assertionsArray = (manifest.assertions || []) as unknown[];
+  type AssertionItem = { label?: string; data?: unknown };
+  const creativeWorkAssertion = assertionsArray.find((a: unknown) => (a as AssertionItem).label === 'stds.schema-org.CreativeWork') as AssertionItem | undefined;
+  const authorData = (creativeWorkAssertion?.data as Record<string, unknown> | undefined)?.author;
 
   if (authorData?.sameAs) {
     const urls = Array.isArray(authorData.sameAs) 

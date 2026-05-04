@@ -12,9 +12,9 @@
   export let trustSource: 'official' | 'legacy' | 'none' = 'none';
 
   // Extract extended X.509 fields (Catching various Rust/JS SDK naming conventions)
-  $: sigInfo = manifestData.signatureInfo as any;
-  $: orgUnit = sigInfo?.organization_unit || sigInfo?.organizational_unit || sigInfo?.organizationUnit || sigInfo?.org_unit || sigInfo?.ou;
-  $: country = sigInfo?.country || sigInfo?.country_name || sigInfo?.countryName || sigInfo?.c;
+  $: sigInfo = manifestData.signatureInfo as Record<string, unknown> | undefined;
+  $: orgUnit = (sigInfo?.organization_unit || sigInfo?.organizational_unit || sigInfo?.organizationUnit || sigInfo?.org_unit || sigInfo?.ou || undefined) as string | undefined;
+  $: country = (sigInfo?.country || sigInfo?.country_name || sigInfo?.countryName || sigInfo?.c || undefined) as string | undefined;
 </script>
 
 {#if manifestData.signatureInfo?.common_name || manifestData.signatureInfo?.issuer || manifestData.date}
@@ -24,10 +24,10 @@
     <svelte:fragment slot="content">
       {#if manifestData.signatureInfo?.common_name || manifestData.signatureInfo?.issuer}
         <IssuedBySection 
-          commonName={manifestData.signatureInfo?.common_name} 
-          issuer={manifestData.signatureInfo?.issuer}
+          commonName={manifestData.signatureInfo?.common_name || undefined} 
+          issuer={manifestData.signatureInfo?.issuer || undefined}
           organizationalUnit={orgUnit}
-          country={country}
+          {country}
           {trustSource} 
         />
       {/if}

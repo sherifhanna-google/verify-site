@@ -18,9 +18,19 @@ declare module '@contentauth/c2pa-web' {
 }
 
 export function selectWebsite(manifest: Manifest): string | null {
-  const site =
-    (manifest.assertions?.['c2pa.asset-ref'] as any)?.data?.references?.[0]?.reference?.uri ??
-    (manifest.assertions?.['stds.schema-org.CreativeWork'] as any)?.data?.url;
+  interface AssetRefAssertion {
+    data?: {
+      references?: Array<{ reference?: { uri?: string } }>;
+    };
+  }
+  interface CreativeWorkAssertion {
+    data?: {
+      url?: string;
+    };
+  }
+  const assetRef = (manifest.assertions as unknown as Record<string, unknown>)?.[ 'c2pa.asset-ref' ] as AssetRefAssertion | undefined;
+  const creativeWork = (manifest.assertions as unknown as Record<string, unknown>)?.[ 'stds.schema-org.CreativeWork' ] as CreativeWorkAssertion | undefined;
+  const site = assetRef?.data?.references?.[0]?.reference?.uri ?? creativeWork?.data?.url ?? null;
 
   return site && isSecureUrl(site) ? site : null;
 }

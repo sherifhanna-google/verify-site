@@ -14,3 +14,4 @@
 </script>
 
 <Description>{#if issuer}{$_('sidebar.verify.about.issuedby')} {issuer}{/if}</Description>
+<span style="display: none;" aria-hidden="true">{trustSource}</span>

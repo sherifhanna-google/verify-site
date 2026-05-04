@@ -26,23 +26,6 @@ const config: PlaywrightTestConfig = {
     ignoreHTTPSErrors: true,
     trace: process.env.CI ? 'on-first-retry' : 'off',
   },
-  webServer: [
-    {
-      command: `pnpm dev --port=${port}`,
-      port,
-      reuseExistingServer: !process.env.CI,
-    },
-    {
-      command: `pnpm http-server e2e/fixtures --port=${fixturesPort} --cors --gzip`,
-      port: fixturesPort,
-      reuseExistingServer: !process.env.CI,
-    },
-    {
-      command: `pnpm run test-image-service`,
-      port: testImageConfig.port,
-      reuseExistingServer: !process.env.CI,
-    },
-  ],
 };
 
 export default config;

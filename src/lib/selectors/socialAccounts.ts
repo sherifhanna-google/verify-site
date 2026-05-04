@@ -12,12 +12,20 @@ export interface SocialAccount {
 export function selectSocialAccounts(manifest: Manifest): SocialAccount[] {
   const accounts: SocialAccount[] = [];
 
-  // Look through verified credentials if present
-  const credentials = manifest.credentials || [];
+  interface VcCredentialShape {
+    credentialSubject?: {
+      id?: string;
+      account?: {
+        service?: string;
+        identifier?: string;
+      };
+    };
+  }
+  const credentials = (manifest.credentials || []) as unknown as VcCredentialShape[];
   
   for (const cred of credentials) {
-    // Simplified mapping logic for standard social media VC schemas
     const vcData = cred.credentialSubject || {};
+
     if (vcData?.account?.service && vcData?.account?.identifier) {
       accounts.push({
         '@id': vcData.id || '',
@@ -28,12 +36,21 @@ export function selectSocialAccounts(manifest: Manifest): SocialAccount[] {
     }
   }
 
-  // Also check standard CreativeWork assertions for "sameAs" social URLs
-  const creativeWork = (manifest.assertions?.['stds.schema-org.CreativeWork'] as any)?.data;
-  if (creativeWork?.author?.sameAs) {
-    const urls = Array.isArray(creativeWork.author.sameAs) 
-      ? creativeWork.author.sameAs 
-      : [creativeWork.author.sameAs];
+  interface CreativeWorkShape {
+    data?: {
+      author?: {
+        sameAs?: string | string[];
+      };
+    };
+  }
+  
+  const creativeWorkAssertion = (manifest.assertions as unknown as Record<string, unknown>)?.[ 'stds.schema-org.CreativeWork' ] as CreativeWorkShape | undefined;
+  const authorData = creativeWorkAssertion?.data?.author;
+
+  if (authorData?.sameAs) {
+    const urls = Array.isArray(authorData.sameAs) 
+      ? authorData.sameAs 
+      : [authorData.sameAs];
       
     for (const url of urls) {
       if (url.includes('twitter.com') || url.includes('x.com')) {

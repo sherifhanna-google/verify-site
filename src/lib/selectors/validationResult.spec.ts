@@ -13,6 +13,7 @@ describe('lib/selectors/validationResult', () => {
         hasError: false,
         hasOtgp: false,
         hasUntrustedSigner: false,
+        hasUntrustedTimestamp: false,
         statusCode: 'valid',
       });
 
@@ -30,10 +31,11 @@ describe('lib/selectors/validationResult', () => {
           },
         ]),
       ).toEqual({
-        hasError: false,
+        hasError: true,
         hasOtgp: false,
         hasUntrustedSigner: true,
-        statusCode: 'unrecognized',
+        hasUntrustedTimestamp: false,
+        statusCode: 'invalid',
       });
 
       expect(
@@ -59,6 +61,7 @@ describe('lib/selectors/validationResult', () => {
         hasError: true,
         hasOtgp: false,
         hasUntrustedSigner: true,
+        hasUntrustedTimestamp: false,
         statusCode: 'invalid',
       });
 
@@ -80,6 +83,7 @@ describe('lib/selectors/validationResult', () => {
         hasError: true,
         hasOtgp: false,
         hasUntrustedSigner: false,
+        hasUntrustedTimestamp: false,
         statusCode: 'invalid',
       });
 
@@ -95,6 +99,7 @@ describe('lib/selectors/validationResult', () => {
         hasError: true,
         hasOtgp: false,
         hasUntrustedSigner: false,
+        hasUntrustedTimestamp: false,
         statusCode: 'invalid',
       });
 
@@ -110,6 +115,7 @@ describe('lib/selectors/validationResult', () => {
         hasError: false,
         hasOtgp: false,
         hasUntrustedSigner: true,
+        hasUntrustedTimestamp: false,
         statusCode: 'unrecognized',
       });
 
@@ -126,6 +132,7 @@ describe('lib/selectors/validationResult', () => {
         hasError: true,
         hasOtgp: true,
         hasUntrustedSigner: false,
+        hasUntrustedTimestamp: false,
         statusCode: 'invalid',
       });
     });
@@ -154,6 +161,7 @@ describe('lib/selectors/validationResult', () => {
         hasError: true,
         hasOtgp: true,
         hasUntrustedSigner: true,
+        hasUntrustedTimestamp: false,
         statusCode: 'invalid',
       });
     });
@@ -206,6 +214,7 @@ describe('lib/selectors/validationResult', () => {
         hasError: false,
         hasOtgp: false,
         hasUntrustedSigner: false,
+        hasUntrustedTimestamp: false,
         statusCode: 'valid',
       });
     });

@@ -142,7 +142,7 @@ describe('components/SidebarMenu', () => {
       const data = getContentSummaryFromManifestData(
         {
           generativeInfo: {
-            softwareAgents: [{ name: 'test', version: '1.0' }],
+            softwareAgents: ['test 1.0'],
             type: 'compositeWithTrainedAlgorithmicMedia',
             customModels: [],
           },
@@ -161,7 +161,7 @@ describe('components/SidebarMenu', () => {
       const data = getContentSummaryFromManifestData(
         {
           generativeInfo: {
-            softwareAgents: [{ name: 'test', version: '1.0' }],
+            softwareAgents: ['test 1.0'],
             type: 'compositeWithTrainedAlgorithmicMedia',
             customModels: [],
           },
@@ -180,7 +180,7 @@ describe('components/SidebarMenu', () => {
       const data = getContentSummaryFromManifestData(
         {
           generativeInfo: {
-            softwareAgents: [{ name: 'test', version: '1.0' }],
+            softwareAgents: ['test 1.0'],
             type: 'compositeWithTrainedAlgorithmicMedia',
             customModels: [],
           },
@@ -198,7 +198,7 @@ describe('components/SidebarMenu', () => {
     it('returns the correct data with compositeWithTrainedAlgorithmicMedia generative info for unknown data', () => {
       const data1 = getContentSummaryFromManifestData({
         generativeInfo: {
-          softwareAgents: [{ name: 'test', version: '1.0' }],
+          softwareAgents: ['test 1.0'],
           type: 'compositeWithTrainedAlgorithmicMedia',
           customModels: [],
         },
@@ -213,7 +213,7 @@ describe('components/SidebarMenu', () => {
       const data2 = getContentSummaryFromManifestData(
         {
           generativeInfo: {
-            softwareAgents: [{ name: 'test', version: '1.0' }],
+            softwareAgents: ['test 1.0'],
             type: 'compositeWithTrainedAlgorithmicMedia',
             customModels: [],
           },
@@ -232,7 +232,7 @@ describe('components/SidebarMenu', () => {
       const data = getContentSummaryFromManifestData(
         {
           generativeInfo: {
-            softwareAgents: [{ name: 'test', version: '1.0' }],
+            softwareAgents: ['test 1.0'],
             type: 'legacy',
             customModels: [],
           },
@@ -251,7 +251,7 @@ describe('components/SidebarMenu', () => {
       const data = getContentSummaryFromManifestData(
         {
           generativeInfo: {
-            softwareAgents: [{ name: 'test', version: '1.0' }],
+            softwareAgents: ['test 1.0'],
             type: 'trainedAlgorithmicMedia',
             customModels: [],
           },
@@ -270,7 +270,7 @@ describe('components/SidebarMenu', () => {
       const data = getContentSummaryFromManifestData(
         {
           generativeInfo: {
-            softwareAgents: [{ name: 'test', version: '1.0' }],
+            softwareAgents: ['test 1.0'],
             type: 'trainedAlgorithmicMedia',
             customModels: [],
           },
@@ -289,7 +289,7 @@ describe('components/SidebarMenu', () => {
       const data = getContentSummaryFromManifestData(
         {
           generativeInfo: {
-            softwareAgents: [{ name: 'test', version: '1.0' }],
+            softwareAgents: ['test 1.0'],
             type: 'trainedAlgorithmicMedia',
             customModels: [],
           },
@@ -307,7 +307,7 @@ describe('components/SidebarMenu', () => {
     it('returns the correct data with trainedAlgorithmicMedia generative info for unknown data', () => {
       const data1 = getContentSummaryFromManifestData({
         generativeInfo: {
-          softwareAgents: [{ name: 'test', version: '1.0' }],
+          softwareAgents: ['test 1.0'],
           type: 'trainedAlgorithmicMedia',
           customModels: [],
         },
@@ -322,7 +322,7 @@ describe('components/SidebarMenu', () => {
       const data2 = getContentSummaryFromManifestData(
         {
           generativeInfo: {
-            softwareAgents: [{ name: 'test', version: '1.0' }],
+            softwareAgents: ['test 1.0'],
             type: 'trainedAlgorithmicMedia',
             customModels: [],
           },

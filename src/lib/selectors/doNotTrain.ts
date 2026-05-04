@@ -4,16 +4,31 @@ import type { Manifest } from '@contentauth/c2pa-web';
 
 export function selectDoNotTrain(manifest: Manifest): boolean {
   // Check for the explicit do not train/mine assertion
-  const trainingAssertions = manifest.assertions?.['c2pa.training-mining'];
+  const trainingAssertions = (manifest.assertions as unknown as Record<string, unknown>)?.[ 'c2pa.training-mining' ];
+
   if (trainingAssertions) {
-    const entry = (trainingAssertions as any)?.data?.entries?.find((e: any) => 
-      e.use === 'notAllowed' && (e.c2pa_manifest === true || e.c2pa_manifest === 'true')
-    );
-    return !!entry;
+    type TrainingEntry = { use: string; c2pa_manifest: boolean | string };
+    const entries = (trainingAssertions as { data?: { entries?: TrainingEntry[] } })?.data?.entries || [];
+    
+    for (let i = 0; i < entries.length; i++) {
+      const e = entries[i];
+
+      if (e.use === 'notAllowed' && (e.c2pa_manifest === true || e.c2pa_manifest === 'true')) {
+        return true;
+      }
+    }
   }
 
   // Fallback: Check c2pa.actions for specific 'not_trained' markers
-  const actionsAssertion = manifest.assertions?.['c2pa.actions'];
-  const actions = (actionsAssertion as any)?.data?.actions || [];
-  return actions.some((a: any) => a.action === 'c2pa.not_trained');
+  const actionsAssertion = (manifest.assertions as unknown as Record<string, unknown>)?.[ 'c2pa.actions' ];
+  type ActionItem = { action: string };
+  const actions = (actionsAssertion as { data?: { actions?: ActionItem[] } })?.data?.actions || [];
+
+  for (let i = 0; i < actions.length; i++) {
+    if (actions[i].action === 'c2pa.not_trained') {
+      return true;
+    }
+  }
+
+  return false;
 }

@@ -14,25 +14,37 @@ export interface AutoDubInfo {
 }
 
 export function selectAutoDubInfo(manifest: Manifest): AutoDubInfo | null {
-  const actionAssertion = manifest.assertions?.['c2pa.actions.v2'];
+  const actionAssertion = (manifest.assertions as unknown as Record<string, unknown>)?.[ 'c2pa.actions.v2' ];
 
   if (!actionAssertion) {
     return null;
   }
 
-  const dubbedAction = actionAssertion.data.actions.find(
-    ({ action }) => action === 'c2pa.dubbed',
-  );
-  const translatedAction = actionAssertion.data.actions.find(
-    ({ action }) => action === 'c2pa.translated',
-  );
-  const editedAction = actionAssertion.data.actions.find(
-    ({ action }) => action === 'c2pa.edited',
-  );
+  type AutoDubChange = { region?: Array<{ type: string; item: { value: string } }> };
+  type AutoDubAction = { action: string; changes?: AutoDubChange[]; parameters?: unknown };
+  type AutoDubData = { data?: { actions?: AutoDubAction[] } };
+
+  const actions = (actionAssertion as AutoDubData)?.data?.actions || [];
+
+  let dubbedAction: AutoDubAction | undefined;
+  let translatedAction: AutoDubAction | undefined;
+  let editedAction: AutoDubAction | undefined;
+
+  for (let i = 0; i < actions.length; i++) {
+    const a = actions[i];
+
+    if (a.action === 'c2pa.dubbed') {
+      dubbedAction = a;
+    } else if (a.action === 'c2pa.translated') {
+      translatedAction = a;
+    } else if (a.action === 'c2pa.edited') {
+      editedAction = a;
+    }
+  }
 
   if (dubbedAction) {
     const dubbedRegionOfInterest = dubbedAction.changes?.find(
-      (change) => !!change?.region,
+      (change: AutoDubChange) => !!change?.region,
     )?.region;
     const dubbedIdentified = dubbedRegionOfInterest?.find(
       (region: Record<string, unknown>) => region.type === 'identified',
@@ -40,7 +52,7 @@ export function selectAutoDubInfo(manifest: Manifest): AutoDubInfo | null {
     const hasLipsRoi = dubbedIdentified === 'lips';
 
     const editedRegionOfInterest = editedAction?.changes?.find(
-      (change) => !!change?.region,
+      (change: AutoDubChange) => !!change?.region,
     )?.region;
     const editedIdentified = editedRegionOfInterest?.find(
       (region: Record<string, unknown>) => region.type === 'identified',

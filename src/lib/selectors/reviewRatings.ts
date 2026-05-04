@@ -13,8 +13,15 @@ export function selectReviewRatings(manifest: Manifest) {
     },
     [],
   );
-  const actionRatings =
-    (manifest.assertions?.['c2pa.actions'] as any)?.data?.metadata?.reviewRatings ?? [];
+  interface C2paActionsAssertion {
+    data?: {
+      metadata?: {
+        reviewRatings?: ReviewRating[];
+      };
+    };
+  }
+  const actionsAssertion = (manifest.assertions as unknown as Record<string, unknown>)?.[ 'c2pa.actions' ] as C2paActionsAssertion | undefined;
+  const actionRatings = actionsAssertion?.data?.metadata?.reviewRatings ?? [];
   const reviewRatings = [...ingredientRatings, ...actionRatings];
 
   return {

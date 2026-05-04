@@ -155,7 +155,7 @@ export async function resultToAssetMap({
   dbg('Runtime validation statuses by manifest label', runtimeValidationStatuses);
 
   const activeManifestValidationResults =
-    manifestStore?.validation_results?.activeManifest;
+    manifestStore?.validation_results?.activeManifest || undefined;
 
   const rootValidationStatuses =
     runtimeValidationStatuses[activeManifestLabel] ?? [];
@@ -269,7 +269,7 @@ export async function resultToAssetMap({
       manifestData: await getManifestData(manifest, rootValidationResult),
       dataType: null,
       validationResult: rootValidationResult,
-      trustSource: (manifest as any).trust_source || 'none',
+      trustSource: ((manifest as Manifest & { trust_source?: string }).trust_source || 'none') as 'legacy' | 'none' | 'official',
     };
 
     if (thumbnail?.dispose) {
@@ -348,14 +348,21 @@ export async function resultToAssetMap({
       return null;
     }
 
-    function formattedGeneratorInfo(claim_generator: any) {
+    interface GeneratorInfoShape {
+      name?: string;
+      version?: string | null;
+      icon?: string | null;
+    }
+
+    function formattedGeneratorInfo(claim_generator: GeneratorInfoShape) {
       const version = claim_generator?.version;
-      claim_generator.version = version?.replace(/\([^()]*\)/g, '');
+      claim_generator.version = version ? version.replace(/\([^()]*\)/g, '') : null;
+
       return claim_generator;
     }
 
     const claimGeneratorInfo = manifest?.claim_generator_info?.[0]
-      ? formattedGeneratorInfo(manifest.claim_generator_info[0])
+      ? formattedGeneratorInfo(manifest.claim_generator_info[0] as GeneratorInfoShape)
       : null;
 
     const claimGeneratorLabel =
@@ -366,11 +373,10 @@ export async function resultToAssetMap({
 
     const claimGenerator: ClaimGeneratorDisplayInfo = {
       label: claimGeneratorLabel,
-      icon: claimGeneratorInfo?.icon ?? null,
+      icon: (claimGeneratorInfo?.icon ? { identifier: claimGeneratorInfo.icon } : null) as unknown as Thumbnail | null,
     };
 
     // Extract Organization (O) from the native X.509 certificate subject tree
-    let organization: string | undefined = undefined;
     const safeSignatureInfo = manifest.signature_info
       ? { ...manifest.signature_info }
       : null;
@@ -393,9 +399,15 @@ export async function resultToAssetMap({
         );
 
         if (editsAndActivity) {
-          const actionsAssertion = manifest.assertions?.['c2pa.actions'];
-          const hasInference =
-            !!(actionsAssertion as any)?.data?.metadata?.['com.adobe.inference'];
+          interface InferenceAssertion {
+            data?: {
+              metadata?: {
+                'com.adobe.inference'?: unknown;
+              };
+            };
+          }
+          const actionsAss = (manifest.assertions as unknown as Record<string, unknown>)?.[ 'c2pa.actions' ] as InferenceAssertion | undefined;
+          const hasInference = !!actionsAss?.data?.metadata?.['com.adobe.inference'];
 
           const filteredEditsAndActivity = editsAndActivity.filter(
             (value) => !!value.label,
@@ -425,15 +437,18 @@ export async function resultToAssetMap({
 
         // 2. Must have exactly one action in the manifest history
         let actionsAssertion;
+
         if (manifest.assertions instanceof Map) {
           actionsAssertion = manifest.assertions.get('c2pa.actions.v2')?.[0] || manifest.assertions.get('c2pa.actions')?.[0] || manifest.assertions.get('c2pa.actions.v2') || manifest.assertions.get('c2pa.actions');
         } else if (Array.isArray(manifest.assertions)) {
-          actionsAssertion = manifest.assertions.find((a: any) => a.label === 'c2pa.actions.v2' || a.label === 'c2pa.actions');
+          actionsAssertion = manifest.assertions.find((a: unknown) => (a as { label?: string }).label === 'c2pa.actions.v2' || (a as { label?: string }).label === 'c2pa.actions');
         } else {
           actionsAssertion = manifest.assertions?.['c2pa.actions.v2'] || manifest.assertions?.['c2pa.actions'];
         }
 
-        const actions = (actionsAssertion as any)?.data?.actions || (actionsAssertion as any)?.actions || [];
+        type ActionEntry = { action: string; digitalSourceType?: string; parameters?: { digitalSourceType?: string } };
+        type AssertionBlock = { data?: { actions?: ActionEntry[] }; actions?: ActionEntry[] };
+        const actions = (actionsAssertion as AssertionBlock)?.data?.actions || (actionsAssertion as AssertionBlock)?.actions || [];
         if (actions.length !== 1) return false;
 
         // 3. First and only action must be c2pa.created
@@ -442,6 +457,7 @@ export async function resultToAssetMap({
 
         // 4. Digital source type must be a standard captured media URI (including computational)
         const sourceType = action.digitalSourceType || action.parameters?.digitalSourceType || '';
+
         return sourceType.includes('digitalCapture') || sourceType.includes('compositeCapture') || sourceType.includes('computationalCapture');
       })(),
     };

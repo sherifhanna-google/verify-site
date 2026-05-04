@@ -1,7 +1,6 @@
 // Copyright 2021-2024 Adobe, Copyright 2025 The C2PA Contributors
 
 import type {
-  DataType,
   Ingredient,
   Manifest,
 } from '@contentauth/c2pa-web';
@@ -13,30 +12,36 @@ interface SdkGenerativeInfo {
 
 function sdkSelectGenerativeInfo(manifest: Manifest): SdkGenerativeInfo[] {
   // Handle both native SDK array structures and crJSON maps
+  type C2paActionItem = { action: string; digitalSourceType?: string; softwareAgent?: string; parameters?: { digitalSourceType?: string } };
+  type AssertionValue = { label?: string; data?: { actions?: C2paActionItem[] }; actions?: C2paActionItem[] };
+
   const isArray = Array.isArray(manifest.assertions);
+  const assertionsArray = (manifest.assertions || []) as unknown[];
   const actionsAssertion = isArray 
-    ? manifest.assertions.find((a: any) => a.label === 'c2pa.actions' || a.label === 'c2pa.actions.v2')
-    : (manifest.assertions?.['c2pa.actions.v2'] || manifest.assertions?.['c2pa.actions']);
-    
-  const actions = (actionsAssertion as any)?.data?.actions || [];
+    ? assertionsArray.find((a: unknown) => (a as AssertionValue).label === 'c2pa.actions' || (a as AssertionValue).label === 'c2pa.actions.v2')
+    : ((manifest.assertions as unknown as Record<string, unknown>)?.[ 'c2pa.actions.v2' ] || (manifest.assertions as unknown as Record<string, unknown>)?.[ 'c2pa.actions' ]);
+     
+  const actions = (actionsAssertion as AssertionValue)?.data?.actions || (actionsAssertion as AssertionValue)?.actions || [];
   
   return actions
-    .filter((a: any) => {
+    .filter((a: C2paActionItem) => {
       // For created/edited actions, inspect the IPTC digitalSourceType for AI definitions
       const sourceType = a.digitalSourceType || a.parameters?.digitalSourceType || '';
+
       return sourceType.toLowerCase().includes('algorithmicmedia');
     })
-    .map((a: any) => {
+    .map((a: C2paActionItem) => {
       const rawType = a.digitalSourceType || a.parameters?.digitalSourceType;
       // The UI expects the IPTC slug, not the full absolute URI
       const typeSlug = typeof rawType === 'string' ? rawType.split('/').pop() : 'legacy';
       
       return {
         softwareAgent: a.softwareAgent || 'Unknown',
-        type: typeSlug
+        type: typeSlug || 'legacy'
       };
     });
 }
+
 import { filter, flow, uniqBy } from 'lodash/fp';
 import startsWith from 'lodash/startsWith';
 
@@ -50,7 +55,7 @@ export interface GenerativeInfo {
 
 export interface CustomModel {
   name: string;
-  dataTypes: DataType[];
+  dataTypes: unknown[];
 }
 
 export function selectGenerativeSoftwareAgents(
@@ -62,8 +67,8 @@ export function selectGenerativeSoftwareAgents(
 
   // if there are undefined software agents remove them from the array
   return flow<[SoftwareAgent[]], SoftwareAgent[], SoftwareAgent[]>(
-    filter((x) => !!x?.name || x),
-    uniqBy((x) => x?.name || x),
+    filter((x) => !!x),
+    uniqBy((x) => x),
   )(softwareAgents);
 }
 
@@ -79,23 +84,27 @@ export function selectGenerativeType(generativeInfo: SdkGenerativeInfo[]) {
 }
 
 export function selectModelsFromIngredient(ingredient: Ingredient) {
-  return (
-    ingredient.dataTypes?.filter((dataType: { type: string }) =>
-      startsWith('c2pa.types.model', dataType.type),
-    ) ?? []
+  const typesArray = ((ingredient as Record<string, unknown>).dataTypes || []) as Array<{ type: string }>;
+  
+  return typesArray.filter((dataType: { type: string }) =>
+    startsWith('c2pa.types.model', dataType.type),
   );
 }
 
 export function selectCustomModels(manifest: Manifest): CustomModel[] {
-  return (manifest.ingredients || []).reduce<CustomModel[]>((acc, ingredient) => {
+  const ingredients = manifest.ingredients || [];
+  const customModels: CustomModel[] = [];
+
+  for (let i = 0; i < ingredients.length; i++) {
+    const ingredient = ingredients[i];
     const dataTypes = selectModelsFromIngredient(ingredient);
 
     if (dataTypes.length > 0) {
-      return [...acc, { name: ingredient.title, dataTypes } as CustomModel];
+      customModels.push({ name: ingredient.title, dataTypes } as CustomModel);
     }
+  }
 
-    return acc;
-  }, []);
+  return customModels;
 }
 
 export function selectGenerativeInfo(manifest: Manifest) {

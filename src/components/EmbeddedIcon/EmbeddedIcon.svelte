@@ -3,18 +3,18 @@
 -->
 <script lang="ts">
   import type { ClaimGeneratorDisplayInfo } from '$src/lib/asset';
-  import { loadThumbnail } from '$src/lib/thumbnail';
+  import { onMount } from 'svelte';
+
   interface DisposableBlobUrl {
     url: string;
     dispose: () => void;
   }
-  import { onMount } from 'svelte';
 
   export let generator: ClaimGeneratorDisplayInfo;
   let iconUrl: string | undefined;
 
   onMount(() => {
-    let dispose: DisposableBlobUrl['dispose'];
+    let dispose: (() => void) | undefined = undefined;
 
     if (generator.icon) {
       // The new SDK requires the active reader instance to fetch embedded resources.
@@ -23,7 +23,9 @@
     }
 
     return () => {
-      dispose?.();
+      if (typeof dispose === 'function') {
+        (dispose as () => void)();
+      }
     };
   });
 </script>

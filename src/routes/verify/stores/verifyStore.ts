@@ -140,6 +140,10 @@ export function createVerifyStore(): VerifyStore {
             }
           : { type: 'local' };
 
+      if (typeof source === 'string') {
+        throw new Error('External URL string sources are not supported in readC2paSource');
+      }
+
       if (
         existingSource.type === 'external' &&
         incomingSource.type === 'external' &&

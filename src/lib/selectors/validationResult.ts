@@ -1,11 +1,10 @@
 // Copyright 2021-2024 Adobe, Copyright 2025 The C2PA Contributors
 
-import type { ManifestStore } from '@contentauth/c2pa-web';
-import { difference } from 'lodash';
+import type { ValidationStatus as SdkValidationStatus, StatusCodes } from '@contentauth/c2pa-web';
 
-export type ValidationStatus = ManifestStore['validation_status'][0];
-export type ValidationResults =
-  ManifestStore['validation_results']['activeManifest'];
+
+export type ValidationStatus = SdkValidationStatus;
+export type ValidationResults = StatusCodes;
 export type ValidationStatusCode = 'valid' | 'invalid' | 'unrecognized';
 
 export type ValidationStatusResult = ReturnType<typeof selectValidationResult>;
@@ -47,13 +46,15 @@ export function hasOtgpStatus(validationStatus: ValidationStatus[] = []) {
  * @returns `true` if we find an error
  */
 export function hasErrorStatus(validationStatus: ValidationStatus[] = []) {
-  return (
-    validationStatus.filter(
-      (err) =>
-        err.code !== OTGP_ERROR_CODE &&
-        err.code !== UNTRUSTED_SIGNER_ERROR_CODE,
-    ).length > 0
-  );
+  for (let i = 0; i < validationStatus.length; i++) {
+    const code = validationStatus[i].code;
+
+    if (code !== OTGP_ERROR_CODE && code !== UNTRUSTED_SIGNER_ERROR_CODE) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 enum UntrustedSignerResult {
@@ -74,19 +75,29 @@ enum UntrustedSignerResult {
 export function hasUntrustedSigner(
   validationStatus: ValidationStatus[] = [],
 ): UntrustedSignerResult {
-  // Assets that can fail the untrusted signer check will have the untrusted signer error code
-  // and possibly the signature mismatch code
-  const codes = validationStatus.map((err) => err.code);
-  const filtered = codes.filter((code) =>
-    [UNTRUSTED_SIGNER_ERROR_CODE, GENERAL_ERROR_CODE].includes(code),
-  );
-  const others = difference(codes, filtered);
-  const hasUntrusted = filtered.includes(UNTRUSTED_SIGNER_ERROR_CODE);
+  let hasUntrusted = false;
+  let hasGeneral = false;
+  let othersCount = 0;
+  let firstOtherCode: string | null = null;
 
-  // Return false if we have other errors, since that should be regarded as an error
-  if (others.length) {
-    // If the other error is the OTGP error code, make sure we account for that
-    if (others.length === 1 && others[0] === OTGP_ERROR_CODE) {
+  for (let i = 0; i < validationStatus.length; i++) {
+    const code = validationStatus[i].code;
+
+    if (code === UNTRUSTED_SIGNER_ERROR_CODE) {
+      hasUntrusted = true;
+    } else if (code === GENERAL_ERROR_CODE) {
+      hasGeneral = true;
+    } else {
+      othersCount++;
+
+      if (!firstOtherCode) {
+        firstOtherCode = code;
+      }
+    }
+  }
+
+  if (othersCount > 0) {
+    if (othersCount === 1 && firstOtherCode === OTGP_ERROR_CODE) {
       return hasUntrusted
         ? UntrustedSignerResult.UntrustedWithOtgp
         : UntrustedSignerResult.TrustedWithOtgp;
@@ -97,23 +108,17 @@ export function hasUntrustedSigner(
       : UntrustedSignerResult.TrustedWithErrors;
   }
 
-  // If we are untrusted and also have a signature mismatch, report as untrusted only
-  // Since we don't want to show an error message with this since this is a subset of
-  // the signature mismatch error.
-  if (hasUntrusted && filtered.length === 2) {
+  if (hasUntrusted && hasGeneral) {
     return UntrustedSignerResult.UntrustedOnly;
   }
 
-  // If we only get a signature mismatch, report that as an error
-  if (!hasUntrusted && filtered.length) {
+  if (!hasUntrusted && hasGeneral) {
     return UntrustedSignerResult.TrustedWithErrors;
   }
 
   return hasUntrusted
-    ? // Untrusted without any other errors
-      UntrustedSignerResult.UntrustedOnly
-    : // Not untrusted and no errors
-      UntrustedSignerResult.TrustedOnly;
+    ? UntrustedSignerResult.UntrustedOnly
+    : UntrustedSignerResult.TrustedOnly;
 }
 
 export function selectValidationResult(

@@ -21,6 +21,11 @@
     assetDataToProps as assetDataToContentSummaryProps,
   } from './ContentSummarySection/ContentSummarySection.svelte';
   import ProcessSection from './ProcessSection/ProcessSection.svelte';
+import CollapsibleSection from '$src/components/SidebarSection/CollapsibleSection.svelte';
+  import SocialMediaInfo from '$src/components/SocialMediaInfo/SocialMediaInfo.svelte';
+  import { providerInfoFromSocialId } from '$src/lib/providers';
+  import SubSection from '../../components/SubSection/SubSection.svelte';
+  import AboutSectionContentRow from './AboutSection/AboutSectionIconContentRow.svelte';
 
   export let assetData: Readable<AssetData>;
   export let viewportElement: HTMLElement | undefined = undefined;
@@ -118,6 +123,53 @@
 <div data-testid="manifestData" data-has-manifest={!!manifestData}>
   {#if manifestData}
     <ContentSummarySection {...assetDataToContentSummaryProps($assetData)} />
+
+    {#if manifestData.socialAccounts && manifestData.socialAccounts.length > 0}
+      <CollapsibleSection>
+        <svelte:fragment slot="header">
+          {$_('sidebar.credit') || 'Credit and usage'}</svelte:fragment>
+        <svelte:fragment slot="content">
+          <div class="flex flex-col gap-y-6" data-testid="credit-and-usage-section">
+            {#each manifestData.socialAccounts as account}
+              <SubSection>
+                <svelte:fragment slot="title">
+                  {#if account.isDocumentVerified}
+                    Verified Identity
+                  {:else}
+                    {$_('sidebar.verify.credit.social') || 'Social media accounts'}
+                  {/if}
+                </svelte:fragment>
+                <div slot="content" class="pt-2">
+                  <AboutSectionContentRow>
+                    <svelte:fragment slot="icon">
+                      {#if providerInfoFromSocialId(account.identifier || account['@id'])}
+                        <svelte:component this={providerInfoFromSocialId(account.identifier || account['@id'])?.icon} class="w-4 h-4" />
+                      {/if}
+                    </svelte:fragment>
+                    <svelte:fragment slot="content">
+                      <div class="flex items-center gap-x-2">
+                        <SocialMediaInfo
+                          link={account['@id']}
+                          username={account.name}
+                          appName={providerInfoFromSocialId(account.identifier || account['@id'])?.name || account.identifier}
+                        />
+                        
+                        {#if account.isDocumentVerified}
+                          <svg class="h-4 w-4 text-blue-500 shrink-0 select-none align-middle pb-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                        {/if}
+                      </div>
+                    </svelte:fragment>
+                  </AboutSectionContentRow>
+                </div>
+              </SubSection>
+            {/each}
+          </div>
+        </svelte:fragment>
+      </CollapsibleSection>
+    {/if}
+
     <ProcessSection {manifestData} {ingredients} {isUntrusted} trustSource={$assetData.trustSource} />
     <CameraCaptureSection {manifestData} />
     <AboutSection {manifestData} trustSource={$assetData.trustSource} />

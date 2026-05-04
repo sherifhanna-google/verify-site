@@ -27,8 +27,8 @@ const matchers = [
   { pattern: /adobe/i, icon: AdobeLogo, name: 'Adobe' },
   { pattern: /behance\.net/i, icon: BehanceLogo, name: 'Behance' },
   { pattern: /facebook\.com/i, icon: FacebookLogo, name: 'Facebook' },
-  { pattern: /instagram\.com/i, icon: InstagramLogo, name: 'Instagram' },
-  { pattern: /linkedin\.com/i, icon: LinkedInLogo, name: 'LinkedIn' },
+  { pattern: /instagram/i, icon: InstagramLogo, name: 'Instagram' },
+  { pattern: /linkedin/i, icon: LinkedInLogo, name: 'LinkedIn' },
   // Behance staging
   {
     pattern: /net\.s2stagehance\.com/i,
@@ -36,7 +36,7 @@ const matchers = [
     name: 'Behance (staging)',
   },
   { pattern: /truepic/i, icon: TruepicLogo, name: 'Truepic' },
-  { pattern: /twitter\.com/i, icon: TwitterLogo, name: 'Twitter' },
+  { pattern: /twitter|x\.com/i, icon: TwitterLogo, name: 'Twitter' },
   { pattern: /pinterest\.com/i, icon: PinterestLogo, name: 'Pinterest' },
   { pattern: /vimeo\.com/i, icon: VimeoLogo, name: 'Vimeo' },
   { pattern: /youtube\.com/i, icon: YouTubeLogo, name: 'YouTube' },

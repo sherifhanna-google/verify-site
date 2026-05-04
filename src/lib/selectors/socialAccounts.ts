@@ -7,6 +7,7 @@ export interface SocialAccount {
   '@type': string;
   name: string;
   identifier: string;
+  isDocumentVerified?: boolean;
 }
 
 export function selectSocialAccounts(manifest: Manifest): SocialAccount[] {
@@ -22,11 +23,14 @@ export function selectSocialAccounts(manifest: Manifest): SocialAccount[] {
     };
   }
   const credentials = (manifest.credentials || []) as unknown as VcCredentialShape[];
+  console.log(`[DEBUG_SOCIAL] Total credentials found in SDK: ${credentials.length}`);
   
   for (const cred of credentials) {
     const vcData = cred.credentialSubject || {};
+    console.log('[DEBUG_SOCIAL] Parsing VC credential data subject:', JSON.stringify(vcData));
 
     if (vcData?.account?.service && vcData?.account?.identifier) {
+      console.log(`[DEBUG_SOCIAL] VC Success match: ${vcData.account.identifier} on ${vcData.account.service}`);
       accounts.push({
         '@id': vcData.id || '',
         '@type': 'Organization',
@@ -36,19 +40,84 @@ export function selectSocialAccounts(manifest: Manifest): SocialAccount[] {
     }
   }
 
-
-  
   const assertionsArray = (manifest.assertions || []) as unknown[];
   type AssertionItem = { label?: string; data?: unknown };
+  
+  console.log('[DEBUG_SOCIAL] Available Manifest Assertion Labels in this asset:', assertionsArray.map(a => (a as AssertionItem).label));
+
   const creativeWorkAssertion = assertionsArray.find((a: unknown) => (a as AssertionItem).label === 'stds.schema-org.CreativeWork') as AssertionItem | undefined;
-  const authorData = (creativeWorkAssertion?.data as Record<string, unknown> | undefined)?.author;
+
+  if (creativeWorkAssertion) {
+    console.log('[DEBUG_SOCIAL] Found stds.schema-org.CreativeWork assertion data:', JSON.stringify(creativeWorkAssertion.data));
+  }
+
+  interface CawgIdentityShape {
+    verifiedIdentities?: Array<{
+      type: string;
+      username?: string;
+      name?: string;
+      uri?: string;
+      provider?: {
+        id?: string;
+        name?: string;
+      };
+    }>;
+  }
+
+  const cawgIdentityAssertion = assertionsArray.find((a: unknown) => (a as AssertionItem).label === 'cawg.identity') as AssertionItem | undefined;
+
+  if (cawgIdentityAssertion) {
+    console.log('[DEBUG_SOCIAL] 🚨 FOUND MODERN cawg.identity ASSERTION DATA:', JSON.stringify(cawgIdentityAssertion.data));
+    const identityData = cawgIdentityAssertion.data as CawgIdentityShape | undefined;
+    const verifiedList = identityData?.verifiedIdentities || [];
+
+
+    for (let i = 0; i < verifiedList.length; i++) {
+      const identity = verifiedList[i];
+
+      if ((identity.type === 'cawg.social_media' || identity.type === 'cawg.document_verification') && identity.uri && (identity.username || identity.name)) {
+        const linkUrl = identity.uri;
+        const isDoc = identity.type === 'cawg.document_verification';
+        const accountName = identity.username || identity.name || '';
+        const appName = identity.provider?.name?.toLowerCase() || 'social';
+
+        let existingAccount: SocialAccount | undefined = undefined;
+        
+        for (let j = 0; j < accounts.length; j++) {
+          if (accounts[j].identifier === appName || accounts[j]['@id'] === linkUrl) {
+            existingAccount = accounts[j];
+            break;
+          }
+        }
+
+        if (existingAccount) {
+          if (isDoc) {
+            existingAccount.name = accountName;
+            existingAccount.isDocumentVerified = true;
+          }
+        } else {
+          accounts.push({
+            '@id': linkUrl,
+            '@type': 'Organization',
+            name: accountName,
+            identifier: appName,
+            isDocumentVerified: isDoc,
+          });
+        }
+      }
+    }
+  }
+
+  const authorData = (creativeWorkAssertion?.data as Record<string, unknown> | undefined)?.author as { sameAs?: string | string[] } | undefined;
 
   if (authorData?.sameAs) {
     const urls = Array.isArray(authorData.sameAs) 
       ? authorData.sameAs 
       : [authorData.sameAs];
-      
-    for (const url of urls) {
+
+    for (let i = 0; i < urls.length; i++) {
+      const url = urls[i];
+
       if (url.includes('twitter.com') || url.includes('x.com')) {
         accounts.push({ '@id': url, '@type': 'Organization', name: url.split('/').pop() || url, identifier: 'twitter' });
       } else if (url.includes('instagram.com')) {

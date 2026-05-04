@@ -1,7 +1,7 @@
 // Copyright 2021-2024 Adobe, Copyright 2025 The C2PA Contributors
 
 import type { PlaywrightTestConfig } from '@playwright/test';
-import testImageConfig from './e2e/c2pa-test-image-service.config';
+
 
 export const port = parseInt(
   (process.env.HOST_PORT as string | undefined) ?? '4173',

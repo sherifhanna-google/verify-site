@@ -53,3 +53,4 @@
     {/if}
   </div>
 </div>
+<span style="display: none;" aria-hidden="true">{trustSource}</span>

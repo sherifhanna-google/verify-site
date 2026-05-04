@@ -5,10 +5,7 @@
   import type { ClaimGeneratorDisplayInfo } from '$src/lib/asset';
   import { onMount } from 'svelte';
 
-  interface DisposableBlobUrl {
-    url: string;
-    dispose: () => void;
-  }
+
 
   export let generator: ClaimGeneratorDisplayInfo;
   let iconUrl: string | undefined;

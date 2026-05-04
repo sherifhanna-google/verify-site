@@ -5,7 +5,16 @@ import type {
   Manifest,
   ManifestStore,
   ResourceRef as Thumbnail,
+  StatusCodes,
 } from '@contentauth/c2pa-web';
+import { type ValidationStatus } from './selectors/validationResult';
+
+interface ExtendedIngredient extends Ingredient {
+  activeManifest?: string;
+  validationStatus?: ValidationStatus[];
+  validationResults?: { activeManifest?: StatusCodes };
+  trustSource?: string;
+}
 import { selectDoNotTrain } from './selectors/doNotTrain';
 import { selectEditsAndActivity, type TranslatedDictionaryCategory } from './selectors/editsAndActivity';
 import { selectProducer } from './selectors/producer';
@@ -278,7 +287,7 @@ export async function resultToAssetMap({
     runtimeValidationStatuses: ManifestLabelValidationStatusMap,
     id: string,
   ): Promise<AssetData> {
-    const ingredientManifestLabel = ingredient.active_manifest;
+    const ingredientManifestLabel = ingredient.active_manifest || (ingredient as ExtendedIngredient).activeManifest;
     const ingredientManifest = ingredientManifestLabel ? manifestStore.manifests?.[ingredientManifestLabel] : null;
 
     // 0.17.x SDK dropped internal thumbnail generation. Skip WASM fetch for ingredients.
@@ -288,10 +297,11 @@ export async function resultToAssetMap({
     );
 
     const activeManifestValidationResults =
-      ingredient.validation_results?.activeManifest;
+      (ingredient.validation_results?.activeManifest || (ingredient as ExtendedIngredient).validationResults?.activeManifest) ?? undefined;
 
+    const validationStatus = ingredient.validation_status || (ingredient as ExtendedIngredient).validationStatus || [];
     let validationResult = selectValidationResult(
-      ingredient.validation_status || [],
+      validationStatus,
       activeManifestValidationResults,
     );
 
@@ -318,7 +328,7 @@ export async function resultToAssetMap({
       manifestData: await getManifestData(ingredientManifest, validationResult),
       dataType: getIngredientDataType(ingredient),
       validationResult,
-      trustSource: (ingredient as any)?.trust_source || 'none',
+      trustSource: ((ingredient as ExtendedIngredient)?.trust_source || (ingredient as ExtendedIngredient)?.trustSource || 'none') as 'legacy' | 'none' | 'official',
     };
 
     if (thumbnail?.dispose) {

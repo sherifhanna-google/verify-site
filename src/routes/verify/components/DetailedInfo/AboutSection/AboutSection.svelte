@@ -17,21 +17,23 @@
   $: country = sigInfo?.country || sigInfo?.country_name || sigInfo?.countryName || sigInfo?.c;
 </script>
 
-<CollapsibleSection>
-  <svelte:fragment slot="header">
-    {$_('sidebar.verify.about')}</svelte:fragment>
-  <svelte:fragment slot="content">
-    {#if manifestData.signatureInfo?.common_name || manifestData.signatureInfo?.issuer}
-      <IssuedBySection 
-        commonName={manifestData.signatureInfo?.common_name} 
-        issuer={manifestData.signatureInfo?.issuer}
-        organizationalUnit={orgUnit}
-        country={country}
-        {trustSource} 
-      />
-    {/if}
-    {#if manifestData.date}
-      <IssuedOnSection date={manifestData.date} />
-    {/if}
-  </svelte:fragment>
-</CollapsibleSection>
+{#if manifestData.signatureInfo?.common_name || manifestData.signatureInfo?.issuer || manifestData.date}
+  <CollapsibleSection>
+    <svelte:fragment slot="header">
+      {$_('sidebar.verify.about')}</svelte:fragment>
+    <svelte:fragment slot="content">
+      {#if manifestData.signatureInfo?.common_name || manifestData.signatureInfo?.issuer}
+        <IssuedBySection 
+          commonName={manifestData.signatureInfo?.common_name} 
+          issuer={manifestData.signatureInfo?.issuer}
+          organizationalUnit={orgUnit}
+          country={country}
+          {trustSource} 
+        />
+      {/if}
+      {#if manifestData.date}
+        <IssuedOnSection date={manifestData.date} />
+      {/if}
+    </svelte:fragment>
+  </CollapsibleSection>
+{/if}

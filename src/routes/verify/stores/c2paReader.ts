@@ -169,19 +169,20 @@ export function createC2paReader(): C2paReaderStore {
                 manifest.ingredients.forEach((ingredient: any, index: number) => {
                   // ZERO TRUST DEFAULT: Unverified assets get no trust credentials
                   ingredient.trust_source = 'none';
+                  ingredient.trustSource = 'none';
 
-                  if (ingredient.active_manifest) {
+                  const subLabel = ingredient.active_manifest || ingredient.activeManifest;
+
+                  if (subLabel) {
                     const p1Ing = p1Manifest.ingredients[index];
-                    const subLabel = ingredient.active_manifest;
                     const p1SubManifest = subLabel ? rawManifestStore.manifests?.[subLabel] : null;
 
                     // 1. Check the Ingredient Pointer (V2 standard)
-                    const p1V2_ing = p1Ing?.validation_status || [];
+                    const p1V2_ing = p1Ing?.validation_status || p1Ing?.validationStatus || [];
 
                     // 2. Check the actual Sub-Manifest directly (V2 + V3 standards)
-                    // NOTE: In V3, the sub-manifest's own results are stored under .activeManifest
-                    const p1V2_sub = p1SubManifest?.validation_status || [];
-                    const p1V3_sub = p1SubManifest?.validation_results?.activeManifest?.failure || [];
+                    const p1V2_sub = p1SubManifest?.validation_status || p1SubManifest?.validationStatus || [];
+                    const p1V3_sub = p1SubManifest?.validation_results?.activeManifest?.failure || p1SubManifest?.validationResults?.activeManifest?.failure || [];
 
                     // 3. Check the Root Deltas (V3 standard)
                     const p1Delta = p1Deltas.find((d: any) => 
@@ -198,9 +199,9 @@ export function createC2paReader(): C2paReaderStore {
                       p1V3_sub.some(isTrustError);
 
                     if (isFinalTrusted) {
-                      // If the Root is trusted, the chain is intact. 
-                      // It only earns 'Official' if it explicitly cleared the local error gauntlet.
-                      ingredient.trust_source = hasTrustError ? 'legacy' : 'official';
+                      const finalSource = hasTrustError ? 'legacy' : 'official';
+                      ingredient.trust_source = finalSource;
+                      ingredient.trustSource = finalSource;
                     }
                   }
                   
@@ -220,7 +221,10 @@ export function createC2paReader(): C2paReaderStore {
               }
               if (manifest.ingredients) {
                 manifest.ingredients.forEach((ing: any) => {
-                  ing.trust_source = (isTrusted && ing.active_manifest) ? 'official' : 'none';
+                  const subLabel = ing.active_manifest || ing.activeManifest;
+                  const finalSource = (isTrusted && subLabel) ? 'official' : 'none';
+                  ing.trust_source = finalSource;
+                  ing.trustSource = finalSource;
                 });
               }
             });
@@ -234,7 +238,10 @@ export function createC2paReader(): C2paReaderStore {
             }
             if (manifest.ingredients) {
               manifest.ingredients.forEach((ing: any) => {
-                ing.trust_source = (isTrusted && ing.active_manifest) ? 'official' : 'none';
+                const subLabel = ing.active_manifest || ing.activeManifest;
+                const finalSource = (isTrusted && subLabel) ? 'official' : 'none';
+                ing.trust_source = finalSource;
+                ing.trustSource = finalSource;
               });
             }
           });

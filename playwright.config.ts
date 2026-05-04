@@ -1,6 +1,7 @@
 // Copyright 2021-2024 Adobe, Copyright 2025 The C2PA Contributors
 
 import type { PlaywrightTestConfig } from '@playwright/test';
+import testImageConfig from './e2e/c2pa-test-image-service.config';
 
 
 export const port = parseInt(
@@ -26,6 +27,23 @@ const config: PlaywrightTestConfig = {
     ignoreHTTPSErrors: true,
     trace: process.env.CI ? 'on-first-retry' : 'off',
   },
+  webServer: [
+    {
+      command: `npx vite dev --port=${port}`,
+      port,
+      reuseExistingServer: !process.env.CI,
+    },
+    {
+      command: `npx http-server e2e/fixtures --port=${fixturesPort} --cors --gzip`,
+      port: fixturesPort,
+      reuseExistingServer: !process.env.CI,
+    },
+    {
+      command: `npx c2pa-test-image-service --config e2e/c2pa-test-image-service.config.ts`,
+      port: testImageConfig.port,
+      reuseExistingServer: !process.env.CI,
+    },
+  ],
 };
 
 export default config;

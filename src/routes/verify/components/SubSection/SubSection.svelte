@@ -5,7 +5,7 @@
   import Label from '$src/components/typography/Label.svelte';
 </script>
 
-<div class="pt-4">
+<div class="pt-2">
   <div class="pb-2.5">
     <Label><slot name="title" /></Label>
   </div>

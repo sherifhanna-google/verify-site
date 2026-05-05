@@ -36,7 +36,7 @@ const matchers = [
     name: 'Behance (staging)',
   },
   { pattern: /truepic/i, icon: TruepicLogo, name: 'Truepic' },
-  { pattern: /twitter|x\.com/i, icon: TwitterLogo, name: 'Twitter' },
+  { pattern: /twitter|x\.com/i, icon: TwitterLogo, name: 'X' },
   { pattern: /pinterest\.com/i, icon: PinterestLogo, name: 'Pinterest' },
   { pattern: /vimeo\.com/i, icon: VimeoLogo, name: 'Vimeo' },
   { pattern: /youtube\.com/i, icon: YouTubeLogo, name: 'YouTube' },

@@ -129,7 +129,7 @@ import CollapsibleSection from '$src/components/SidebarSection/CollapsibleSectio
         <svelte:fragment slot="header">
           {$_('sidebar.credit') || 'Credit and usage'}</svelte:fragment>
         <svelte:fragment slot="content">
-          <div class="flex flex-col gap-y-6" data-testid="credit-and-usage-section">
+          <div class="flex flex-col gap-y-3.5" data-testid="credit-and-usage-section">
             {#each manifestData.socialAccounts as account}
               <SubSection>
                 <svelte:fragment slot="title">

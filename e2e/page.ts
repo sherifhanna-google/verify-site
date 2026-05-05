@@ -181,6 +181,16 @@ export class VerifyPage {
   }
 
   async takeSnapshot(name: string, options: SnapshotOptions = {}) {
+    if (!process.env.PERCY_TOKEN && !process.env.CI) {
+      console.log(`[PLAYWRIGHT] Local environment (No Percy token). Skipping cloud snapshot: ${name}`);
+
+      if (SNAPSHOT_DEBUG_MODE) {
+        await this.takeDebugSnapshot(name, options);
+      }
+
+      return;
+    }
+
     if (SNAPSHOT_DEBUG_MODE) {
       await this.takeDebugSnapshot(name, options);
     }

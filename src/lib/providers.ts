@@ -45,6 +45,8 @@ const matchers = [
   { pattern: /lightroom/i, icon: LightroomLogo, name: 'Adobe Lightroom' },
 ];
 
-export function providerInfoFromSocialId(id: string) {
+export function providerInfoFromSocialId(id: string | undefined | null) {
+  if (!id) return undefined;
+
   return matchers.find(({ pattern }) => pattern.test(id));
 }

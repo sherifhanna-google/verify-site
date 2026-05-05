@@ -15,7 +15,12 @@ function getSupportedLocales() {
 const config = {
   server: {
     fs: {
-      allow: ['assets', 'locales'],
+      allow: [
+        path.resolve(__dirname, 'assets'),
+        path.resolve(__dirname, 'locales'),
+        path.resolve(__dirname, '../assets'),
+        path.resolve(__dirname, 'src'),
+      ],
     },
   },
   build: {

@@ -406,7 +406,9 @@ export async function resultToAssetMap({
               };
             };
           }
-          const actionsAss = (manifest.assertions as unknown as Record<string, unknown>)?.[ 'c2pa.actions' ] as InferenceAssertion | undefined;
+          const assertionsArr = (manifest.assertions || []) as unknown[];
+          type AssItem = { label?: string; data?: unknown };
+          const actionsAss = assertionsArr.find((a: unknown) => (a as AssItem).label === 'c2pa.actions' || (a as AssItem).label === 'c2pa.actions.v2') as InferenceAssertion | undefined;
           const hasInference = !!actionsAss?.data?.metadata?.['com.adobe.inference'];
 
           const filteredEditsAndActivity = editsAndActivity.filter(

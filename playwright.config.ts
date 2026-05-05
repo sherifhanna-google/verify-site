@@ -29,7 +29,7 @@ const config: PlaywrightTestConfig = {
   },
   webServer: [
     {
-      command: `npx vite dev --port=${port}`,
+      command: `npx vite preview --port=${port}`,
       port,
       reuseExistingServer: !process.env.CI,
     },

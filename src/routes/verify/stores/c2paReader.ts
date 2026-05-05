@@ -197,7 +197,7 @@ export function createC2paReader(): C2paReaderStore {
                       }
                     }
                     
-                    console.log(`[DEBUG_C2PA] VERDICT -> Ingredient [${label} / ${ingredient.title || index}]: ${ingredient.trust_source}`);
+                    
                   });
                 }
               });

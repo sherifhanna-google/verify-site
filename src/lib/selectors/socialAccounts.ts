@@ -23,14 +23,11 @@ export function selectSocialAccounts(manifest: Manifest): SocialAccount[] {
     };
   }
   const credentials = (manifest.credentials || []) as unknown as VcCredentialShape[];
-  console.log(`[DEBUG_SOCIAL] Total credentials found in SDK: ${credentials.length}`);
-  
+
   for (const cred of credentials) {
     const vcData = cred.credentialSubject || {};
-    console.log('[DEBUG_SOCIAL] Parsing VC credential data subject:', JSON.stringify(vcData));
 
     if (vcData?.account?.service && vcData?.account?.identifier) {
-      console.log(`[DEBUG_SOCIAL] VC Success match: ${vcData.account.identifier} on ${vcData.account.service}`);
       accounts.push({
         '@id': vcData.id || '',
         '@type': 'Organization',
@@ -42,14 +39,8 @@ export function selectSocialAccounts(manifest: Manifest): SocialAccount[] {
 
   const assertionsArray = (manifest.assertions || []) as unknown[];
   type AssertionItem = { label?: string; data?: unknown };
-  
-  console.log('[DEBUG_SOCIAL] Available Manifest Assertion Labels in this asset:', assertionsArray.map(a => (a as AssertionItem).label));
 
   const creativeWorkAssertion = assertionsArray.find((a: unknown) => (a as AssertionItem).label === 'stds.schema-org.CreativeWork') as AssertionItem | undefined;
-
-  if (creativeWorkAssertion) {
-    console.log('[DEBUG_SOCIAL] Found stds.schema-org.CreativeWork assertion data:', JSON.stringify(creativeWorkAssertion.data));
-  }
 
   interface CawgIdentityShape {
     verifiedIdentities?: Array<{
@@ -67,7 +58,6 @@ export function selectSocialAccounts(manifest: Manifest): SocialAccount[] {
   const cawgIdentityAssertion = assertionsArray.find((a: unknown) => (a as AssertionItem).label === 'cawg.identity') as AssertionItem | undefined;
 
   if (cawgIdentityAssertion) {
-    console.log('[DEBUG_SOCIAL] 🚨 FOUND MODERN cawg.identity ASSERTION DATA:', JSON.stringify(cawgIdentityAssertion.data));
     const identityData = cawgIdentityAssertion.data as CawgIdentityShape | undefined;
     const verifiedList = identityData?.verifiedIdentities || [];
 

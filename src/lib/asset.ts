@@ -144,9 +144,11 @@ export async function resultToAssetMap({
   const visitedManifests = new Set<string>();
   
   const activeManifestLabel = manifestStore?.active_manifest ?? '';
+
   if (activeManifestLabel) {
     visitedManifests.add(activeManifestLabel);
   }
+
   const allLabels = Object.keys(manifestStore?.manifests ?? {});
   const runtimeValidationStatuses = manifestStore?.validation_status
     ? validationStatusByManifestLabel(
@@ -296,6 +298,7 @@ export async function resultToAssetMap({
 
     if (ingredientManifestLabel && visitedManifests.has(ingredientManifestLabel)) {
       dbg(`[RECURSION_PRUNE] Circular or duplicate branch hit on manifest label: ${ingredientManifestLabel}. Pruning children branch safely.`);
+
       return {
         id,
         title: ingredient.title ?? null,
@@ -308,6 +311,7 @@ export async function resultToAssetMap({
         trustSource: 'none',
       };
     }
+
     if (ingredientManifestLabel) {
       visitedManifests.add(ingredientManifestLabel);
     }

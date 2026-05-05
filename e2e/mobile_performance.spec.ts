@@ -10,7 +10,6 @@ test.use({
   deviceScaleFactor: iPhone.deviceScaleFactor,
   isMobile: iPhone.isMobile,
   hasTouch: iPhone.hasTouch,
-  channel: 'chrome',
 });
 
 test.describe('Mobile Viewport Headless Performance Audit (iPhone 12 Pro - Fast 4G - 4x CPU Slowdown)', () => {

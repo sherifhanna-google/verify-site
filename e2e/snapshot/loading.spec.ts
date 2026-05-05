@@ -88,7 +88,7 @@ test.describe('Verify - loading states', () => {
   test('loading an image with no credentials should work', async ({ page }) => {
     const verify = new VerifyPage(page);
     await verify.goto();
-    await verify.chooseFile('A.jpg');
+    await verify.chooseFile('A.jpg', { waitForTree: false });
 
     await verify.takeSnapshot(`result for A.jpg`, {
       widths: [1280],
@@ -112,7 +112,7 @@ test.describe('Verify - loading states', () => {
   }) => {
     const verify = new VerifyPage(page);
     await verify.goto();
-    await verify.chooseFile('XCA.jpg');
+    await verify.chooseFile('XCA.jpg', { waitForTree: false });
 
     await verify.takeSnapshot(`result for XCA.jpg`);
   });
@@ -122,7 +122,7 @@ test.describe('Verify - loading states', () => {
   }) => {
     const verify = new VerifyPage(page);
     await verify.goto();
-    await verify.chooseFile('E-uri-CIE-sig-CA.jpg');
+    await verify.chooseFile('E-uri-CIE-sig-CA.jpg', { waitForTree: false });
 
     await verify.takeSnapshot(`result for E-uri-CIE-sig-CA.jpg`);
   });
@@ -132,7 +132,7 @@ test.describe('Verify - loading states', () => {
   }) => {
     const verify = new VerifyPage(page);
     await verify.goto();
-    await verify.chooseFile('CIE-sig-CA.jpg');
+    await verify.chooseFile('CIE-sig-CA.jpg', { waitForTree: false });
 
     await verify.takeSnapshot(`result for CIE-sig-CA.jpg`);
   });

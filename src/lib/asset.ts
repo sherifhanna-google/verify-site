@@ -141,8 +141,12 @@ export async function resultToAssetMap({
 }): Promise<DisposableAssetDataMap> {
   const assetMap: AssetDataMap = {};
   const disposers: (() => void)[] = [];
+  const visitedManifests = new Set<string>();
   
   const activeManifestLabel = manifestStore?.active_manifest ?? '';
+  if (activeManifestLabel) {
+    visitedManifests.add(activeManifestLabel);
+  }
   const allLabels = Object.keys(manifestStore?.manifests ?? {});
   const runtimeValidationStatuses = manifestStore?.validation_status
     ? validationStatusByManifestLabel(
@@ -289,6 +293,24 @@ export async function resultToAssetMap({
   ): Promise<AssetData> {
     const ingredientManifestLabel = ingredient.active_manifest || (ingredient as ExtendedIngredient).activeManifest;
     const ingredientManifest = ingredientManifestLabel ? manifestStore.manifests?.[ingredientManifestLabel] : null;
+
+    if (ingredientManifestLabel && visitedManifests.has(ingredientManifestLabel)) {
+      dbg(`[RECURSION_PRUNE] Circular or duplicate branch hit on manifest label: ${ingredientManifestLabel}. Pruning children branch safely.`);
+      return {
+        id,
+        title: ingredient.title ?? null,
+        thumbnail: null,
+        mimeType: ingredient.format || '',
+        children: [],
+        manifestData: null,
+        dataType: null,
+        validationResult: selectValidationResult([]),
+        trustSource: 'none',
+      };
+    }
+    if (ingredientManifestLabel) {
+      visitedManifests.add(ingredientManifestLabel);
+    }
 
     // 0.17.x SDK dropped internal thumbnail generation. Skip WASM fetch for ingredients.
     const thumbnail = await loadThumbnail(

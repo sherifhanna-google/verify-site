@@ -129,14 +129,16 @@ export class VerifyPage {
         document.querySelectorAll('button[role="treeitem"] svg'),
       );
 
-      const thumbnailImagesVisible =
-        treeViewThumbnailsImgs.length > 0 &&
-        treeViewThumbnailsImgs.every((x) => x.complete);
-      const thumbnailSvgsVisible = treeViewThumbnailsSvgs.length > 0;
+      const manifestTree = document.querySelector(
+        'div[data-testid="manifest-tree"]',
+      );
+
+      const thumbnailImagesVisible = treeViewThumbnailsImgs.every((x) => x.complete);
 
       return (
         loadingOverlay === null &&
-        (thumbnailImagesVisible || thumbnailSvgsVisible)
+        manifestTree !== null &&
+        thumbnailImagesVisible
       );
     });
   }

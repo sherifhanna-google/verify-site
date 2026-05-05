@@ -57,7 +57,7 @@ test.describe('Verify - tree view', () => {
   }) => {
     const verify = new VerifyPage(page);
     const source = VerifyPage.getFixtureUrl('A.jpg', 'file');
-    await verify.goto(source);
+    await verify.goto(source, {}, { waitForTree: false });
 
     const rootNode = page.getByTestId('tree-node-0');
 
@@ -210,7 +210,7 @@ test('Incomplete content credentials should display an incomplete CR icon on the
   const verify = new VerifyPage(page);
   await page.setViewportSize({ width: 1024, height: 1024 });
   const source = VerifyPage.getFixtureUrl('XCA.jpg', 'file');
-  await verify.goto(source);
+  await verify.goto(source, {}, { waitForTree: false });
   await verify.takeSnapshot(
     'result for tree view with incomplete content credentials',
     {
@@ -225,7 +225,7 @@ test('Invalid content credentials should display an invalid CR icon on the tree 
   const verify = new VerifyPage(page);
   await page.setViewportSize({ width: 1024, height: 1024 });
   const source = VerifyPage.getFixtureUrl('E-sig-CA.jpg', 'file');
-  await verify.goto(source);
+  await verify.goto(source, {}, { waitForTree: false });
   await verify.takeSnapshot(
     'result for tree view with invalid content credentials',
     {

@@ -49,17 +49,21 @@ export class VerifyPage {
       path.resolve(dirname, `../fixtures/${filename}`),
     );
 
-    const dataTransfer = await this.page.evaluateHandle(async (data) => {
-      const dt = new DataTransfer();
+    // Pass the Node buffer as a raw numerical array of bytes for bit-perfect browser memory cloning
+    const bytesArray = Array.from(buffer);
 
-      const file = new File([data.toString('hex')], filename, {
+    const dataTransfer = await this.page.evaluateHandle(async (bytes) => {
+      const dt = new DataTransfer();
+      const u8Array = new Uint8Array(bytes);
+      
+      const file = new File([u8Array], filename, {
         type: filetype,
       });
 
       dt.items.add(file);
 
       return dt;
-    }, buffer);
+    }, bytesArray);
 
     const dropzone = this.page.getByTestId('file-dropzone');
     await dropzone.dispatchEvent('drop', { dataTransfer });
@@ -68,15 +72,20 @@ export class VerifyPage {
   async goto(
     source: string | null = null,
     otherParams: Record<string, string> = {},
+    opts?: { waitForTree?: boolean }
   ) {
     const params = new URLSearchParams(otherParams);
+    const waitForTree = opts?.waitForTree ?? true;
 
     await this.preferReducedMotion();
 
     if (source) {
       params.set('source', source);
       await this.page.goto(`?${params.toString()}`);
-      await this.treeViewVisible();
+      
+      if (waitForTree) {
+        await this.treeViewVisible();
+      }
     } else {
       await this.page.goto(
         `${params.keys.length > 0 ? `?${params.toString()}` : ``}`,

@@ -125,9 +125,6 @@ export class VerifyPage {
       const treeViewThumbnailsImgs = Array.from<HTMLImageElement>(
         document.querySelectorAll('button[role="treeitem"] img'),
       );
-      const treeViewThumbnailsSvgs = Array.from<SVGElement>(
-        document.querySelectorAll('button[role="treeitem"] svg'),
-      );
 
       const manifestTree = document.querySelector(
         'div[data-testid="manifest-tree"]',
